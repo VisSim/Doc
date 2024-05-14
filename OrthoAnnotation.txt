@@ -1,0 +1,174 @@
+I need suggestions for creating text labels and buttons in Verge3D. But they should not be HTML Overlays. They should be rendered using WebGL & orthographic projection, similar to what Unity and Unreal does.
+
+Please remember one IMPORTANT thing that HTML and CSS cannot be used, as this is an AR app targeted for Apple IOS devices and will use the Apple default Apples Quick viewer for AR, which does not support HTML overlays. So modify the code accordingly.
+
+// Create a scene
+var scene = new THREE.Scene();
+
+// Create a camera
+var camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
+camera.position.set(0, 0, 10);
+
+// Create a renderer
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Create button
+var buttonTexture = new THREE.TextureLoader().load('path/to/buttonTexture.png');
+var buttonMaterial = new THREE.SpriteMaterial({ map: buttonTexture });
+var button = new THREE.Sprite(buttonMaterial);
+button.scale.set(2, 1, 1); // Adjust scale as needed
+scene.add(button);
+
+// Function to update button position based on window size
+function updateButtonPosition() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var aspect = width / height;
+
+    // Calculate position based on aspect ratio
+    var buttonScaleX = 2; // Scale of the button
+    var buttonScaleY = 1;
+
+    var cameraOrthoHeight = 10; // Orthographic camera height
+    var cameraOrthoWidth = aspect * cameraOrthoHeight;
+
+    // Calculate button position
+    var buttonPosX = cameraOrthoWidth / 2 - buttonScaleX / 2;
+    var buttonPosY = -cameraOrthoHeight / 2 + buttonScaleY / 2;
+
+    button.position.set(buttonPosX, buttonPosY, 0);
+}
+
+// Initial positioning
+updateButtonPosition();
+
+// Listen for window resize events to update button position
+window.addEventListener('resize', function() {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    updateButtonPosition();
+});
+
+// Render the scene
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+animate();
+//----------------------------------------------------------
+
+I am using Verge3D V3D App template and have a scene with 3D model loaded and viewed from camera using perspective projection. So modify the above code for V3D App template and incorporate perspective projection for model viewing and orthographic projection for buttons. Also there is no button handler for button click and release. Please add it as well
+
+
+// Create a scene
+var scene = new v3d.Scene();
+
+// Create a perspective camera
+var camera = new v3d.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 10);
+
+// Create a renderer
+var renderer = v3d.AppUtils.init();
+var controls = new v3d.OrbitControls(camera, renderer.domElement); // Assuming you want orbit controls for the perspective camera
+v3d.AppUtils.setClearColor(0x000000); // Set clear color to black
+v3d.AppUtils.disableAutoscale();
+
+// Create button
+var buttonTexture = new v3d.TextureLoader().load('path/to/buttonTexture.png');
+var buttonMaterial = new v3d.SpriteMaterial({ map: buttonTexture });
+var button = new v3d.Sprite(buttonMaterial);
+button.scale.set(2, 1, 1); // Adjust scale as needed
+scene.add(button);
+
+// Set up orthographic camera for buttons
+var buttonCamera = new v3d.OrthographicCamera(-10, 10, 10, -10, 1, 1000);
+buttonCamera.position.set(0, 0, 10);
+
+// Function to update button position based on window size
+function updateButtonPosition() {
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var aspect = width / height;
+
+    // Calculate position based on aspect ratio
+    var buttonScaleX = 2; // Scale of the button
+    var buttonScaleY = 1;
+
+    var buttonCameraOrthoHeight = 10; // Orthographic camera height
+    var buttonCameraOrthoWidth = aspect * buttonCameraOrthoHeight;
+
+    // Calculate button position
+    var buttonPosX = buttonCameraOrthoWidth / 2 - buttonScaleX / 2;
+    var buttonPosY = -buttonCameraOrthoHeight / 2 + buttonScaleY / 2;
+
+    button.position.set(buttonPosX, buttonPosY, 0);
+}
+
+// Initial positioning
+updateButtonPosition();
+
+// Listen for window resize events to update button position
+window.addEventListener('resize', function() {
+    v3d.AppUtils.onWindowResize(renderer, camera);
+    updateButtonPosition();
+});
+
+// Button click event
+var isButtonClicked = false;
+window.addEventListener('mousedown', function(event) {
+    var raycaster = new v3d.Raycaster();
+    var mouse = new v3d.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, buttonCamera);
+    var intersects = raycaster.intersectObject(button);
+    if (intersects.length > 0) {
+        isButtonClicked = true;
+        // Handle button click
+        console.log("Button clicked!");
+    }
+});
+
+// Button release event
+window.addEventListener('mouseup', function(event) {
+    isButtonClicked = false;
+});
+
+// Render the scene
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+animate();
+
+//-------------------------------------------------------------
+
+For Apple AR experiences, including those built with Verge3D, you typically won't use traditional web event handlers like window.addEventListener for handling button clicks or other interactions. Instead, interactions are usually handled through gestures or taps directly within the AR environment.
+
+However, Verge3D does provide a way to create interactive elements within your 3D scene using its logic editor. You can define behaviors and responses to user input directly within Verge3D, without relying on traditional web event handlers.
+
+Here's how you can modify the code to incorporate a Verge3D logic node to handle button clicks within the 3D scene:
+
+Create a Verge3D logic node that listens for a tap gesture on the button sprite.
+Define the action to be performed when the button is tapped, such as triggering an animation, changing the scene, or any other desired behavior.
+Here's a basic example of how you might set up the logic node in Verge3D:
+
+
+
+
+
+// Create button
+var buttonTexture = new v3d.TextureLoader().load('path/to/buttonTexture.png');
+var buttonMaterial = new v3d.SpriteMaterial({ map: buttonTexture });
+var button = new v3d.Sprite(buttonMaterial);
+button.scale.set(2, 1, 1); // Adjust scale as needed
+scene.add(button);
+
+// Add logic node for button interaction
+v3d.logic.nodes.onClick(button, function() {
+    // Perform action when button is clicked
+    console.log("Button clicked!");
+});
